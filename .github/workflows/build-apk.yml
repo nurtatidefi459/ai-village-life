@@ -1,0 +1,31 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # Bisa trigger manual
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Setup Godot
+      uses: firebelley/godot-export@v4.5.0
+      with:
+        godot_version: '4.5'
+        
+    - name: Build Android APK
+      run: |
+        # Export project untuk Android
+        godot --headless --export-release "Android" game.apk
+        
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: AI-Village-Life-APK
+        path: game.apk
+        retention-days: 30
