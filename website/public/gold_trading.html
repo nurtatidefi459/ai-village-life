@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gold Trading - AI Village Life</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/payment.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🪙 Gold Trading</h1>
+            <nav>
+                <a href="index.html">Home</a>
+                <a href="auction.html">Auction House</a>
+                <a href="topup.html">Top Up</a>
+                <a href="profile.html">Profile</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="gold-trading-container">
+            <!-- Tab Navigation -->
+            <div class="tabs">
+                <button class="tab-button active" data-tab="buy">Buy Gold</button>
+                <button class="tab-button" data-tab="sell">Sell Gold</button>
+                <button class="tab-button" data-tab="my_listings">My Listings</button>
+                <button class="tab-button" data-tab="transactions">My Transactions</button>
+            </div>
+
+            <!-- Buy Gold Tab -->
+            <div id="buy" class="tab-content active">
+                <h2>Buy Gold from Players</h2>
+                <div class="filters">
+                    <select id="sortGold" onchange="loadGoldListings()">
+                        <option value="price_asc">Price: Low to High</option>
+                        <option value="price_desc">Price: High to Low</option>
+                        <option value="newest">Newest First</option>
+                    </select>
+                    <input type="number" id="minPrice" placeholder="Min price" onchange="loadGoldListings()">
+                    <input type="number" id="maxPrice" placeholder="Max price" onchange="loadGoldListings()">
+                </div>
+
+                <div id="goldListings" class="listings-grid">
+                    <!-- Gold listings will be loaded here -->
+                </div>
+
+                <div class="pagination" id="goldPagination">
+                    <!-- Pagination will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Sell Gold Tab -->
+            <div id="sell" class="tab-content">
+                <h2>Sell Your Gold</h2>
+                <div class="sell-form-container">
+                    <form id="sellGoldForm" class="gold-form">
+                        <div class="form-group">
+                            <label>Gold Amount to Sell:</label>
+                            <input type="number" id="sellGoldAmount" min="10" max="1000" required>
+                            <small>Min: 10 gold, Max: 1000 gold</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Price per Gold (IDR):</label>
+                            <input type="number" id="sellPricePerGold" min="800" max="1500" required>
+                            <small>Min: Rp 800, Max: Rp 1,500 per gold</small>
+                        </div>
+                        
+                        <div class="price-summary">
+                            <div class="summary-item">
+                                <span>Total Price:</span>
+                                <span id="totalPrice">Rp 0</span>
+                            </div>
+                            <div class="summary-item">
+                                <span>Trading Fee (5%):</span>
+                                <span id="tradingFee">Rp 0</span>
+                            </div>
+                            <div class="summary-item highlight">
+                                <span>You Receive:</span>
+                                <span id="youReceive">Rp 0</span>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">List Gold for Sale</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- My Listings Tab -->
+            <div id="my_listings" class="tab-content">
+                <h2>My Gold Listings</h2>
+                <div id="myListings">
+                    <!-- User's gold listings will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Transactions Tab -->
+            <div id="transactions" class="tab-content">
+                <h2>My Gold Transactions</h2>
+                <div class="transaction-tabs">
+                    <button class="sub-tab active" data-subtab="buying">Buying</button>
+                    <button class="sub-tab" data-subtab="selling">Selling</button>
+                </div>
+                
+                <div id="buyingTransactions" class="sub-tab-content active">
+                    <!-- Buying transactions will be loaded here -->
+                </div>
+                <div id="sellingTransactions" class="sub-tab-content">
+                    <!-- Selling transactions will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <div id="buyGoldModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Buy Gold</h3>
+                <button onclick="closeModal('buyGoldModal')" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body" id="buyGoldContent">
+                <!-- Buy gold content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <div id="paymentModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirm Payment</h3>
+                <button onclick="closeModal('paymentModal')" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="paymentForm">
+                    <input type="hidden" id="paymentTransactionId">
+                    
+                    <div class="payment-info">
+                        <h4>Transfer to:</h4>
+                        <div id="sellerBankInfo"></div>
+                        <div class="amount-display">
+                            <strong>Amount: <span id="paymentAmount"></span></strong>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Transfer Date:</label>
+                        <input type="date" id="paymentDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Your Bank Name:</label>
+                        <input type="text" id="paymentBank" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Your Account Number:</label>
+                        <input type="text" id="paymentAccount" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Proof of Transfer (Screenshot):</label>
+                        <input type="file" id="paymentProof" accept="image/*" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Confirm Payment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/gold_trading.js"></script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top Up Gold - AI Village Life</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🪙 Top Up Gold</h1>
+            <nav>
+                <a href="index.html">Home</a>
+                <a href="auction.html">Auction House</a>
+                <a href="profile.html">Profile</a>
+                <a href="forum.html">Forum</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="topup-container">
+            <div class="gold-packages">
+                <h2>Select Gold Package</h2>
+                <div class="package-grid">
+                    <div class="package-card" onclick="selectPackage(10, 10000)">
+                        <h3>10 Gold</h3>
+                        <div class="price">Rp 10.000</div>
+                        <div class="best-value">Basic</div>
+                    </div>
+                    <div class="package-card featured" onclick="selectPackage(50, 45000)">
+                        <h3>50 Gold</h3>
+                        <div class="price">Rp 45.000</div>
+                        <div class="best-value">Popular</div>
+                        <div class="discount">Save 10%</div>
+                    </div>
+                    <div class="package-card" onclick="selectPackage(100, 80000)">
+                        <h3>100 Gold</h3>
+                        <div class="price">Rp 80.000</div>
+                        <div class="best-value">Best Value</div>
+                        <div class="discount">Save 20%</div>
+                    </div>
+                    <div class="package-card" onclick="selectPackage(200, 150000)">
+                        <h3>200 Gold</h3>
+                        <div class="price">Rp 150.000</div>
+                        <div class="best-value">Ultimate</div>
+                        <div class="discount">Save 25%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="paymentSection" style="display: none;">
+                <h2>Payment Information</h2>
+                <div class="payment-info">
+                    <div class="bank-details">
+                        <h3>Transfer to:</h3>
+                        <p><strong>Bank:</strong> <span id="paymentBank">BANK CENTRAL ASIA</span></p>
+                        <p><strong>Account:</strong> <span id="paymentAccount">37901700008923</span></p>
+                        <p><strong>Name:</strong> <span id="paymentName">AI VILLAGE LIFE</span></p>
+                        <p><strong>Amount:</strong> <span id="paymentAmount" class="highlight">Rp 0</span></p>
+                    </div>
+                </div>
+
+                <form id="paymentForm" class="payment-form">
+                    <input type="hidden" id="selectedGold">
+                    <input type="hidden" id="selectedPrice">
+                    
+                    <div class="form-group">
+                        <label>Transfer Date:</label>
+                        <input type="date" id="transferDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Your Bank Name:</label>
+                        <input type="text" id="yourBank" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Your Account Number:</label>
+                        <input type="text" id="yourAccount" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Proof of Transfer (Image):</label>
+                        <input type="file" id="proofImage" accept="image/*" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Confirm Payment</button>
+                </form>
+            </div>
+
+            <div id="transactionHistory" style="display: none;">
+                <h2>Transaction History</h2>
+                <div id="historyList"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/topup.js"></script>
+</body>
+</html>
