@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - AI Village Life</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>🌾 AI Village Life</h2>
+                <p>Admin Panel</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="#" class="active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="#" data-section="topup"><i class="fas fa-coins"></i> Top-up Verification</a></li>
+                <li><a href="#" data-section="players"><i class="fas fa-users"></i> Player Management</a></li>
+                <li><a href="#" data-section="auctions"><i class="fas fa-gavel"></i> Auction House</a></li>
+                <li><a href="#" data-section="transactions"><i class="fas fa-exchange-alt"></i> Transactions</a></li>
+                <li><a href="#" data-section="settings"><i class="fas fa-cog"></i> Settings</a></li>
+                <li><a href="#" data-section="logs"><i class="fas fa-clipboard-list"></i> Activity Logs</a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <div id="adminInfo">
+                    <strong id="adminUsername"></strong>
+                    <span id="adminRole" class="role-badge"></span>
+                </div>
+                <button onclick="logout()" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Login Section -->
+            <div id="loginSection" class="login-section">
+                <div class="login-container">
+                    <div class="login-header">
+                        <h1>🌾 AI Village Life</h1>
+                        <p>Admin Panel Login</p>
+                    </div>
+                    <form id="loginForm" class="login-form">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" required>
+                        </div>
+                        <button type="submit" class="btn-login">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Dashboard Section -->
+            <section id="dashboardSection" class="section hidden">
+                <div class="section-header">
+                    <h1><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
+                    <div class="last-update" id="lastUpdate"></div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon total-players">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalPlayers">0</h3>
+                            <p>Total Players</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon pending-topups">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="pendingTopups">0</h3>
+                            <p>Pending Top-ups</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon total-revenue">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalRevenue">Rp 0</h3>
+                            <p>Total Revenue</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon active-auctions">
+                            <i class="fas fa-gavel"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="activeAuctions">0</h3>
+                            <p>Active Auctions</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>Recent Transactions (7 Days)</h3>
+                        <div id="revenueChart" class="chart-container">
+                            <canvas id="revenueChartCanvas"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h3>System Status</h3>
+                        <div class="status-list">
+                            <div class="status-item">
+                                <span class="status-label">Game Version:</span>
+                                <span class="status-value" id="gameVersion">1.0.0</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">Maintenance Mode:</span>
+                                <span class="status-value" id="maintenanceMode">Off</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">Server Time:</span>
+                                <span class="status-value" id="serverTime">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Top-up Verification Section -->
+            <section id="topupSection" class="section hidden">
+                <div class="section-header">
+                    <h1><i class="fas fa-coins"></i> Top-up Verification</h1>
+                    <div class="section-actions">
+                        <select id="topupStatusFilter" onchange="loadTopupTransactions()">
+                            <option value="waiting_verification">Waiting Verification</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="pending">Pending</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="topupTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Transaction ID</th>
+                                <th>Player</th>
+                                <th>Gold Amount</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topupTableBody">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                    
+                    <div class="pagination" id="topupPagination">
+                        <!-- Pagination will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Player Management Section -->
+            <section id="playersSection" class="section hidden">
+                <div class="section-header">
+                    <h1><i class="fas fa-users"></i> Player Management</h1>
+                    <div class="section-actions">
+                        <input type="text" id="playerSearch" placeholder="Search players..." onkeyup="debounceSearch()">
+                        <button onclick="showAddCurrencyModal()" class="btn-primary">
+                            <i class="fas fa-plus"></i> Add Currency
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="playersTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Player ID</th>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Silver</th>
+                                <th>Gold</th>
+                                <th>Registered</th>
+                                <th>Last Login</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="playersTableBody">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                    
+                    <div class="pagination" id="playersPagination">
+                        <!-- Pagination will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Add more sections for auctions, transactions, settings, logs -->
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="topupDetailModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Top-up Details</h3>
+                <button onclick="closeModal('topupDetailModal')" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body" id="topupDetailContent">
+                <!-- Details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button onclick="approveTopup()" class="btn-success">Approve</button>
+                <button onclick="showRejectModal()" class="btn-danger">Reject</button>
+                <button onclick="closeModal('topupDetailModal')" class="btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="rejectModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Reject Top-up</h3>
+                <button onclick="closeModal('rejectModal')" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="rejectReason" placeholder="Enter rejection reason..." rows="4"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button onclick="rejectTopup()" class="btn-danger">Confirm Reject</button>
+                <button onclick="closeModal('rejectModal')" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addCurrencyModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add/Remove Currency</h3>
+                <button onclick="closeModal('addCurrencyModal')" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Player ID:</label>
+                    <input type="text" id="currencyPlayerId" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Action:</label>
+                    <select id="currencyAction">
+                        <option value="add_currency">Add Currency</option>
+                        <option value="remove_currency">Remove Currency</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Currency Type:</label>
+                    <select id="currencyType">
+                        <option value="gold">Gold</option>
+                        <option value="silver">Silver</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Amount:</label>
+                    <input type="number" id="currencyAmount" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Reason:</label>
+                    <textarea id="currencyReason" rows="3" placeholder="Enter reason for this action..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="processCurrencyAction()" class="btn-primary">Submit</button>
+                <button onclick="closeModal('addCurrencyModal')" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
