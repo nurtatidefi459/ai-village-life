@@ -3,7 +3,7 @@ name: Build Android APK
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:  # Bisa trigger manual
+  workflow_dispatch:
 
 jobs:
   build:
@@ -11,7 +11,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4 
+      uses: actions/checkout@v4
       
     - name: Setup Java
       uses: actions/setup-java@v3
@@ -32,27 +32,32 @@ jobs:
         wget https://github.com/godotengine/godot/releases/download/4.0.3-stable/Godot_v4.0.3-stable_export_templates.tpz
         unzip Godot_v4.0.3-stable_export_templates.tpz -d ~/.local/share/godot/export_templates/
         
-    - name: Create Android Keystore
+    - name: Debug - List files before build
       run: |
-        keytool -genkeypair \
-          -v \
-          -keystore android.keystore \
-          -alias android \
-          -keyalg RSA \
-          -keysize 2048 \
-          -validity 10000 \
-          -storepass android \
-          -keypass android \
-          -dname "CN=AI Village Life, OU=Game, O=AI Village, L=Jakarta, ST=Jakarta, C=ID"
-          
+        echo "=== STRUKTUR FILE ==="
+        find . -name "*.gd" -o -name "*.godot" | head -20
+        echo "=== PROJECT.GODOT ==="
+        cat game/project.godot || echo "File project.godot tidak ditemukan!"
+        
     - name: Build Android APK
       run: |
         cd game
-        mkdir -p build
+        echo "=== MEMBUILD APK ==="
         godot --headless --export-release "Android" build/AI_Village_Life.apk
+        echo "Build selesai dengan exit code: $?"
+        
+    - name: Debug - Check build results
+      run: |
+        echo "=== FILE SETELAH BUILD ==="
+        find . -name "*.apk" -type f
+        echo "=== ISI FOLDER BUILD ==="
+        ls -la game/build/ || echo "Folder build tidak ada!"
+        echo "=== ISI FOLDER GAME ==="
+        ls -la game/
         
     - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4 
+      if: success() && hash('game/build/AI_Village_Life.apk')
+      uses: actions/upload-artifact@v4
       with:
         name: AI-Village-Life-APK
         path: game/build/AI_Village_Life.apk
