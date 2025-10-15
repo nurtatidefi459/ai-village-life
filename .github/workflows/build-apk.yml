@@ -8,44 +8,57 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout repository
+    - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Debug - List project structure
-      run: |
-        echo "=== PROJECT STRUCTURE ==="
-        find . -type f -name "*.gd" -o -name "*.godot" | head -20
-        ls -la game/
-        
     - name: Install Godot
       run: |
         wget -q https://github.com/godotengine/godot/releases/download/4.0.3-stable/Godot_v4.0.3-stable_linux.x86_64.zip
         unzip -q Godot_v4.0.3-stable_linux.x86_64.zip
         chmod +x Godot_v4.0.3-stable_linux.x86_64
         sudo mv Godot_v4.0.3-stable_linux.x86_64 /usr/local/bin/godot
+        godot --version
         
-    - name: Try simple Godot test
+    - name: Setup export templates
+      run: |
+        mkdir -p ~/.local/share/godot/export_templates
+        wget -q https://github.com/godotengine/godot/releases/download/4.0.3-stable/Godot_v4.0.3-stable_export_templates.tpz
+        unzip -q Godot_v4.0.3-stable_export_templates.tpz -d ~/.local/share/godot/export_templates/
+        
+    - name: Verify project structure
+      run: |
+        echo "=== Project Structure ==="
+        ls -la game/
+        echo "=== Source Files ==="
+        ls -la game/src/ || echo "No src folder"
+        echo "=== Project File ==="
+        cat game/project.godot
+        
+    - name: Build APK
       run: |
         cd game
-        godot --headless --version
-        echo "Godot installed successfully!"
+        mkdir -p build
+        echo "🚀 Building APK..."
+        godot --headless --export-release Android build/AI_Village_Life.apk
+        echo "Build process completed!"
         
-    - name: Create minimal Main.gd if missing
+    - name: Check APK result
       run: |
-        if [ ! -f "game/src/Main.gd" ]; then
-          echo "Creating minimal Main.gd..."
-          mkdir -p game/src
-          cat > game/src/Main.gd << 'EOF'
-extends Node
-func _ready():
-    print("AI Village Life - Minimal Test Version")
-EOF
+        echo "=== Build Results ==="
+        ls -la game/build/ || echo "No build folder"
+        if [ -f "game/build/AI_Village_Life.apk" ]; then
+          echo "🎉 SUCCESS: APK file found!"
+          ls -lh game/build/AI_Village_Life.apk
+        else
+          echo "❌ FAILED: No APK file created"
+          echo "Trying to find any APK files..."
+          find . -name "*.apk" -type f
+          exit 1
         fi
         
-    - name: Fix project.godot filename
-      run: |
-        cd game
-        if [ -f "project.gdot" ]; then
-          mv project.gdot project.godot
-          echo "Fixed project.godot filename"
-        fi
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: AI-Village-Life-APK
+        path: game/build/AI_Village_Life.apk
+        retention-days: 30
