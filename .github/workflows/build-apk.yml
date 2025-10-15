@@ -15,6 +15,7 @@ jobs:
       run: |
         cd game
         godot --headless --export-release Android AI_Village_Life.apk
+        ls -la
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
