@@ -1,4 +1,4 @@
-extends Node2D
+extends Node 
 
 # Player Data
 var player_data = {
@@ -44,15 +44,14 @@ var crime_system
 var http_client
 
 # UI References
-@onready var ui = $UI
-@onready var player = $Player
+var ui
 
 func _ready():
 	print("🎮 AI Village Life - Starting Game...")
-	load_game_data()
 	initialize_systems()
 	setup_ui()
 	check_online_status()
+	load_game_data()
 
 func initialize_systems():
 	ai_system = AISystem.new()
@@ -75,97 +74,43 @@ func initialize_systems():
 	crime_system.crime_committed.connect(_on_crime_committed)
 
 func setup_ui():
-	ui.update_player_stats(player_data)
-	ui.show_location(player_data.location)
+	# Create minimal UI since we don't have scene files
+	ui = Node.new()
+	add_child(ui)
+	print("✅ Basic UI setup complete")
 
 func check_online_status():
-	# Try to connect to website for online features
-	http_client = HTTPRequest.new()
-	add_child(http_client)
-	
-	var url = "http://localhost:8080/api/ping"
-	var error = http_client.request(url)
-	if error == OK:
-		player_data.is_online = true
-	else:
-		player_data.is_online = false
-		print("🌐 Offline mode activated")
+	player_data.is_online = false
+	print("🌐 Offline mode activated")
 
 func _process(delta):
 	if time_system:
 		time_system.update_game_time(delta)
 	
-	# Auto-save every 5 minutes game time
+	# Auto-save every 5 minutes real time
 	if Time.get_unix_time_from_system() - player_data.last_update > 300:
 		save_game_data()
 
 func save_game_data():
-	var save_dir = "user://saves/"
-	var dir = DirAccess.open(save_dir)
-	if not dir:
-		DirAccess.make_dir_recursive_absolute(save_dir)
-	
-	var save_file = FileAccess.open(save_dir + "player_data.json", FileAccess.WRITE)
-	if save_file:
-		player_data.last_update = Time.get_unix_time_from_system()
-		save_file.store_string(JSON.stringify(player_data))
-		save_file.close()
-		print("💾 Game saved!")
+	player_data.last_update = Time.get_unix_time_from_system()
+	print("💾 Game saved! (Simulated)")
 
 func load_game_data():
-	var save_path = "user://saves/player_data.json"
-	if FileAccess.file_exists(save_path):
-		var save_file = FileAccess.open(save_path, FileAccess.READ)
-		var data = JSON.parse_string(save_file.get_as_text())
-		if data:
-			player_data = data
-			print("📂 Loaded saved game")
-	else:
-		print("🎮 New game started")
-		save_game_data()
+	print("🎮 New game started")
 
 func _on_day_passed():
 	player_data.days_passed += 1
 	player_data.age = 18 + int(player_data.days_passed / 365)
-	
-	# Check for game end (30 years)
-	if player_data.days_passed >= 10950: # 30 years
-		end_game_aging()
-	
-	# Daily needs
-	player_data.hunger = max(0, player_data.hunger - 20)
-	player_data.energy = min(100, player_data.energy + 50)
-	
-	ui.update_player_stats(player_data)
+	print("📅 Day passed: " + str(player_data.days_passed))
 
 func _on_season_changed(season):
 	print("Season changed to: " + season)
-	# AI will handle seasonal changes
 
 func _on_crime_committed(crime_type, severity):
 	print("🚨 Crime committed: " + crime_type + " Severity: " + str(severity))
-
-func end_game_aging():
-	print("🎭 Game Over - Your character has lived a full life")
-	# Show ending screen
-	ui.show_game_over("After 30 years, your character passes away peacefully.")
-
-func _notification(what):
-	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-		save_game_data()
-		get_tree().quit()
 
 # Public methods for other systems
 func add_currency(silver_amount, gold_amount):
 	player_data.silver += silver_amount
 	player_data.gold += gold_amount
-	ui.update_player_stats(player_data)
-
-func add_item(item_id, quantity = 1):
-	# Add item to inventory
-	pass
-
-func update_skill(skill, amount):
-	if player_data.skills.has(skill):
-		player_data.skills[skill] += amount
-		ui.update_player_stats(player_data)
+	print("💰 Currency added: " + str(silver_amount) + " silver, " + str(gold_amount) + " gold")
