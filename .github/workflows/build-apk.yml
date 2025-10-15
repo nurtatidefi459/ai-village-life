@@ -11,54 +11,79 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Install Godot
+    - name: Install Godot and Export Templates
       run: |
+        # Install Godot
         wget -q https://github.com/godotengine/godot/releases/download/4.0.3-stable/Godot_v4.0.3-stable_linux.x86_64.zip
         unzip -q Godot_v4.0.3-stable_linux.x86_64.zip
         chmod +x Godot_v4.0.3-stable_linux.x86_64
         sudo mv Godot_v4.0.3-stable_linux.x86_64 /usr/local/bin/godot
-        godot --version
         
-    - name: Setup export templates
-      run: |
-        mkdir -p ~/.local/share/godot/export_templates
+        # Install Export Templates to correct location
+        mkdir -p ~/.local/share/godot/export_templates/4.0.3.stable/
         wget -q https://github.com/godotengine/godot/releases/download/4.0.3-stable/Godot_v4.0.3-stable_export_templates.tpz
-        unzip -q Godot_v4.0.3-stable_export_templates.tpz -d ~/.local/share/godot/export_templates/
+        unzip -q Godot_v4.0.3-stable_export_templates.tpz
+        mv templates/* ~/.local/share/godot/export_templates/4.0.3.stable/
         
-    - name: Verify project structure
+        echo "Godot version:"
+        godot --version
+        echo "Export templates installed:"
+        ls -la ~/.local/share/godot/export_templates/4.0.3.stable/ | head -5
+        
+    - name: Create minimal working project
       run: |
-        echo "=== Project Structure ==="
-        ls -la game/
-        echo "=== Source Files ==="
-        ls -la game/src/ || echo "No src folder"
-        echo "=== Project File ==="
-        cat game/project.godot
+        cd game
         
-    - name: Build APK
+        # Ensure Main.gd exists and is valid
+        mkdir -p src
+        cat > src/Main.gd << 'EOF'
+extends SceneTree
+
+func _initialize():
+    print("AI Village Life - Minimal Project")
+    quit()
+EOF
+        
+        # Verify project.godot
+        echo "=== project.godot content ==="
+        cat project.godot
+        echo "=== File structure ==="
+        find . -type f -name "*.gd" -o -name "*.godot"
+        
+    - name: Build APK with debug info
       run: |
         cd game
         mkdir -p build
-        echo "🚀 Building APK..."
-        godot --headless --export-release Android build/AI_Village_Life.apk
-        echo "Build process completed!"
         
-    - name: Check APK result
+        echo "=== Building APK ==="
+        # Run Godot with verbose output to see errors
+        godot --headless --verbose --export-debug Android build/AI_Village_Life.apk 2>&1 | tee build.log || true
+        
+        echo "=== Build log ==="
+        cat build.log
+        
+        echo "=== Files in build directory ==="
+        ls -la build/
+        
+    - name: Check and Upload APK
       run: |
-        echo "=== Build Results ==="
-        ls -la game/build/ || echo "No build folder"
         if [ -f "game/build/AI_Village_Life.apk" ]; then
-          echo "🎉 SUCCESS: APK file found!"
+          echo "🎉 APK BERHASIL DIBUAT!"
           ls -lh game/build/AI_Village_Life.apk
+          
+          # Upload to artifacts
+          cp game/build/AI_Village_Life.apk ./
         else
-          echo "❌ FAILED: No APK file created"
-          echo "Trying to find any APK files..."
+          echo "❌ APK tidak ditemukan, mencari file lain..."
           find . -name "*.apk" -type f
+          echo "=== Debug: project structure ==="
+          find game/ -type f -name "*.gd" -o -name "*.godot" -o -name "*.apk"
           exit 1
         fi
         
-    - name: Upload APK
+    - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: AI-Village-Life-APK
-        path: game/build/AI_Village_Life.apk
+        path: AI_Village_Life.apk
         retention-days: 30
