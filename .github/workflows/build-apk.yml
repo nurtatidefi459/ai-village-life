@@ -11,7 +11,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4 
       
     - name: Setup Java
       uses: actions/setup-java@v3
@@ -19,23 +19,20 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
         
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v2
-      
-    - name: Download Godot
+    - name: Download Godot 4.0.3
       run: |
         wget https://github.com/godotengine/godot/releases/download/4.0.3-stable/Godot_v4.0.3-stable_linux.x86_64.zip
         unzip Godot_v4.0.3-stable_linux.x86_64.zip
         chmod +x Godot_v4.0.3-stable_linux.x86_64
         sudo mv Godot_v4.0.3-stable_linux.x86_64 /usr/local/bin/godot
         
-    - name: Create export templates directory
+    - name: Setup Export Templates
       run: |
         mkdir -p ~/.local/share/godot/export_templates
         wget https://github.com/godotengine/godot/releases/download/4.0.3-stable/Godot_v4.0.3-stable_export_templates.tpz
         unzip Godot_v4.0.3-stable_export_templates.tpz -d ~/.local/share/godot/export_templates/
         
-    - name: Create Android keystore
+    - name: Create Android Keystore
       run: |
         keytool -genkeypair \
           -v \
@@ -51,13 +48,12 @@ jobs:
     - name: Build Android APK
       run: |
         cd game
-        mkdir -p android/build
-        godot --headless --export-release "Android" ../android/build/AI_Village_Life.apk
-        ls -la ../android/build/
+        mkdir -p build
+        godot --headless --export-release "Android" build/AI_Village_Life.apk
         
-    - name: Upload APK artifact
-      uses: actions/upload-artifact@v3
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4 
       with:
         name: AI-Village-Life-APK
-        path: android/build/AI_Village_Life.apk
+        path: game/build/AI_Village_Life.apk
         retention-days: 30
