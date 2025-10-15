@@ -13,19 +13,51 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
       
-    - name: Setup Godot
-      uses: firebelley/godot-export@v4.5.0
+    - name: Setup Java
+      uses: actions/setup-java@v3
       with:
-        godot_version: '4.5'
+        java-version: '11'
+        distribution: 'temurin'
         
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+      
+    - name: Download Godot
+      run: |
+        wget https://github.com/godotengine/godot/releases/download/4.0.3-stable/Godot_v4.0.3-stable_linux.x86_64.zip
+        unzip Godot_v4.0.3-stable_linux.x86_64.zip
+        chmod +x Godot_v4.0.3-stable_linux.x86_64
+        sudo mv Godot_v4.0.3-stable_linux.x86_64 /usr/local/bin/godot
+        
+    - name: Create export templates directory
+      run: |
+        mkdir -p ~/.local/share/godot/export_templates
+        wget https://github.com/godotengine/godot/releases/download/4.0.3-stable/Godot_v4.0.3-stable_export_templates.tpz
+        unzip Godot_v4.0.3-stable_export_templates.tpz -d ~/.local/share/godot/export_templates/
+        
+    - name: Create Android keystore
+      run: |
+        keytool -genkeypair \
+          -v \
+          -keystore android.keystore \
+          -alias android \
+          -keyalg RSA \
+          -keysize 2048 \
+          -validity 10000 \
+          -storepass android \
+          -keypass android \
+          -dname "CN=AI Village Life, OU=Game, O=AI Village, L=Jakarta, ST=Jakarta, C=ID"
+          
     - name: Build Android APK
       run: |
-        # Export project untuk Android
-        godot --headless --export-release "Android" game.apk
+        cd game
+        mkdir -p android/build
+        godot --headless --export-release "Android" ../android/build/AI_Village_Life.apk
+        ls -la ../android/build/
         
     - name: Upload APK artifact
       uses: actions/upload-artifact@v3
       with:
         name: AI-Village-Life-APK
-        path: game.apk
+        path: android/build/AI_Village_Life.apk
         retention-days: 30
