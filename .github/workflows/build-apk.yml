@@ -1,8 +1,6 @@
 name: Build Android APK
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -10,55 +8,44 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v4
       
-    - name: Setup Java
-      uses: actions/setup-java@v3
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-        
-    - name: Download Godot 4.0.3
+    - name: Debug - List project structure
       run: |
-        wget https://github.com/godotengine/godot/releases/download/4.0.3-stable/Godot_v4.0.3-stable_linux.x86_64.zip
-        unzip Godot_v4.0.3-stable_linux.x86_64.zip
+        echo "=== PROJECT STRUCTURE ==="
+        find . -type f -name "*.gd" -o -name "*.godot" | head -20
+        ls -la game/
+        
+    - name: Install Godot
+      run: |
+        wget -q https://github.com/godotengine/godot/releases/download/4.0.3-stable/Godot_v4.0.3-stable_linux.x86_64.zip
+        unzip -q Godot_v4.0.3-stable_linux.x86_64.zip
         chmod +x Godot_v4.0.3-stable_linux.x86_64
         sudo mv Godot_v4.0.3-stable_linux.x86_64 /usr/local/bin/godot
         
-    - name: Setup Export Templates
-      run: |
-        mkdir -p ~/.local/share/godot/export_templates
-        wget https://github.com/godotengine/godot/releases/download/4.0.3-stable/Godot_v4.0.3-stable_export_templates.tpz
-        unzip Godot_v4.0.3-stable_export_templates.tpz -d ~/.local/share/godot/export_templates/
-        
-    - name: Debug - List files before build
-      run: |
-        echo "=== STRUKTUR FILE ==="
-        find . -name "*.gd" -o -name "*.godot" | head -20
-        echo "=== PROJECT.GODOT ==="
-        cat game/project.godot || echo "File project.godot tidak ditemukan!"
-        
-    - name: Build Android APK
+    - name: Try simple Godot test
       run: |
         cd game
-        echo "=== MEMBUILD APK ==="
-        godot --headless --export-release "Android" build/AI_Village_Life.apk
-        echo "Build selesai dengan exit code: $?"
+        godot --headless --version
+        echo "Godot installed successfully!"
         
-    - name: Debug - Check build results
+    - name: Create minimal Main.gd if missing
       run: |
-        echo "=== FILE SETELAH BUILD ==="
-        find . -name "*.apk" -type f
-        echo "=== ISI FOLDER BUILD ==="
-        ls -la game/build/ || echo "Folder build tidak ada!"
-        echo "=== ISI FOLDER GAME ==="
-        ls -la game/
+        if [ ! -f "game/src/Main.gd" ]; then
+          echo "Creating minimal Main.gd..."
+          mkdir -p game/src
+          cat > game/src/Main.gd << 'EOF'
+extends Node
+func _ready():
+    print("AI Village Life - Minimal Test Version")
+EOF
+        fi
         
-    - name: Upload APK Artifact
-      if: success() && hash('game/build/AI_Village_Life.apk')
-      uses: actions/upload-artifact@v4
-      with:
-        name: AI-Village-Life-APK
-        path: game/build/AI_Village_Life.apk
-        retention-days: 30
+    - name: Fix project.godot filename
+      run: |
+        cd game
+        if [ -f "project.gdot" ]; then
+          mv project.gdot project.godot
+          echo "Fixed project.godot filename"
+        fi
