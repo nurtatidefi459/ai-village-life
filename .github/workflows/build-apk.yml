@@ -31,18 +31,15 @@ jobs:
         ls -la ~/.local/share/godot/export_templates/4.0.3.stable/ | head -5
         
     - name: Create minimal working project
-      run: |
-        cd game
-        
-        # Ensure Main.gd exists and is valid
-        mkdir -p src
-        cat > src/Main.gd << 'EOF'
-extends SceneTree
-
-func _initialize():
-    print("AI Village Life - Minimal Project")
-    quit()
-EOF
+  run: |
+    cd game
+    mkdir -p src
+    # Gunakan echo instead of heredoc
+    echo 'extends SceneTree' > src/Main.gd
+    echo '' >> src/Main.gd
+    echo 'func _initialize():' >> src/Main.gd
+    echo '    print("AI Village Life - Minimal Project")' >> src/Main.gd
+    echo '    quit()' >> src/Main.gd
         
         # Verify project.godot
         echo "=== project.godot content ==="
