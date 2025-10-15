@@ -1,16 +1,58 @@
-name: Build APK
-on: workflow_dispatch
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v4
-      - uses: firebelley/godot-export@v2.4.0
-        with:
-          godot_version: '4.0.3'
-          export_preset: 'Android'
-          relative_project_path: 'game'
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Game-APK
-          path: game/build/
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install Godot
+      run: |
+        wget -q https://github.com/godotengine/godot/releases/download/4.0.3-stable/Godot_v4.0.3-stable_linux.x86_64.zip
+        unzip -q Godot_v4.0.3-stable_linux.x86_64.zip
+        chmod +x Godot_v4.0.3-stable_linux.x86_64
+        sudo mv Godot_v4.0.3-stable_linux.x86_64 /usr/local/bin/godot
+        godot --version
+        
+    - name: Setup Android export templates
+      run: |
+        mkdir -p ~/.local/share/godot/export_templates/4.0.3.stable/
+        wget -q https://github.com/godotengine/godot/releases/download/4.0.3-stable/Godot_v4.0.3-stable_export_templates.tpz
+        unzip -q Godot_v4.0.3-stable_export_templates.tpz
+        mv templates/* ~/.local/share/godot/export_templates/4.0.3.stable/
+        echo "Export templates installed"
+        
+    - name: Build APK
+      run: |
+        cd game
+        echo "=== Building APK ==="
+        godot --headless --export-release Android AI_Village_Life.apk
+        echo "=== Build finished ==="
+        
+    - name: Verify and Upload APK
+      run: |
+        echo "=== Checking for APK ==="
+        ls -la game/
+        if [ -f "game/AI_Village_Life.apk" ]; then
+          echo "🎉 APK SUCCESSFULLY CREATED!"
+          ls -lh game/AI_Village_Life.apk
+        else
+          echo "❌ APK not found!"
+          echo "=== Debug: All files in game/ ==="
+          find game/ -type f
+          exit 1
+        fi
+        
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: AI-Village-Life-APK
+        path: game/AI_Village_Life.apk
+        retention-days: 30
