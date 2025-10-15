@@ -21,9 +21,13 @@ version/name="1.0.0"
 
 ui_accept=[]
 
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+
 [export]
 
-filters=["Android"]
+filters=["*"]
 
 [export_presets]
 
@@ -43,6 +47,6 @@ version/name="1.0.0"
 version/code=1
 package/name="com.aivillagelife.game"
 screen/immersive_mode=true
+screen/orientation=0
 graphics/opengl_api=1
 xr_features/xr_mode=0
-screen/orientation=0
