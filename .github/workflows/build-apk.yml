@@ -54,14 +54,10 @@ EOF
       run: |
         cd game
         mkdir -p build
-        
         echo "=== Building APK ==="
-        # Run Godot with verbose output to see errors
-        godot --headless --verbose --export-debug Android build/AI_Village_Life.apk 2>&1 | tee build.log || true
-        
+        godot --headless --verbose --export-debug Android build/AI_Village_Life.apk 2>&1 | tee build.log
         echo "=== Build log ==="
         cat build.log
-        
         echo "=== Files in build directory ==="
         ls -la build/
         
@@ -70,8 +66,6 @@ EOF
         if [ -f "game/build/AI_Village_Life.apk" ]; then
           echo "🎉 APK BERHASIL DIBUAT!"
           ls -lh game/build/AI_Village_Life.apk
-          
-          # Upload to artifacts
           cp game/build/AI_Village_Life.apk ./
         else
           echo "❌ APK tidak ditemukan, mencari file lain..."
