@@ -1,80 +1,22 @@
 name: Build Android APK
-
-on:
-  workflow_dispatch:
-
+on: workflow_dispatch
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Install Godot and Export Templates
+    - uses: actions/checkout@v4
+    - name: Install Godot
       run: |
-        # Install Godot
         wget -q https://github.com/godotengine/godot/releases/download/4.0.3-stable/Godot_v4.0.3-stable_linux.x86_64.zip
         unzip -q Godot_v4.0.3-stable_linux.x86_64.zip
         chmod +x Godot_v4.0.3-stable_linux.x86_64
         sudo mv Godot_v4.0.3-stable_linux.x86_64 /usr/local/bin/godot
-        
-        # Install Export Templates to correct location
-        mkdir -p ~/.local/share/godot/export_templates/4.0.3.stable/
-        wget -q https://github.com/godotengine/godot/releases/download/4.0.3-stable/Godot_v4.0.3-stable_export_templates.tpz
-        unzip -q Godot_v4.0.3-stable_export_templates.tpz
-        mv templates/* ~/.local/share/godot/export_templates/4.0.3.stable/
-        
-        echo "Godot version:"
-        godot --version
-        echo "Export templates installed:"
-        ls -la ~/.local/share/godot/export_templates/4.0.3.stable/ | head -5
-        
-    - name: Create minimal working project
-  run: |
-    cd game
-    mkdir -p src
-    # Gunakan echo instead of heredoc
-    echo 'extends SceneTree' > src/Main.gd
-    echo '' >> src/Main.gd
-    echo 'func _initialize():' >> src/Main.gd
-    echo '    print("AI Village Life - Minimal Project")' >> src/Main.gd
-    echo '    quit()' >> src/Main.gd
-        
-        # Verify project.godot
-        echo "=== project.godot content ==="
-        cat project.godot
-        echo "=== File structure ==="
-        find . -type f -name "*.gd" -o -name "*.godot"
-        
-    - name: Build APK with debug info
+    - name: Build APK
       run: |
         cd game
-        mkdir -p build
-        echo "=== Building APK ==="
-        godot --headless --verbose --export-debug Android build/AI_Village_Life.apk 2>&1 | tee build.log
-        echo "=== Build log ==="
-        cat build.log
-        echo "=== Files in build directory ==="
-        ls -la build/
-        
-    - name: Check and Upload APK
-      run: |
-        if [ -f "game/build/AI_Village_Life.apk" ]; then
-          echo "🎉 APK BERHASIL DIBUAT!"
-          ls -lh game/build/AI_Village_Life.apk
-          cp game/build/AI_Village_Life.apk ./
-        else
-          echo "❌ APK tidak ditemukan, mencari file lain..."
-          find . -name "*.apk" -type f
-          echo "=== Debug: project structure ==="
-          find game/ -type f -name "*.gd" -o -name "*.godot" -o -name "*.apk"
-          exit 1
-        fi
-        
-    - name: Upload APK Artifact
+        godot --headless --export-release Android AI_Village_Life.apk
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: AI-Village-Life-APK
-        path: AI_Village_Life.apk
-        retention-days: 30
+        name: APK
+        path: game/AI_Village_Life.apk
