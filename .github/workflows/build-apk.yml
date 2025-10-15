@@ -5,18 +5,44 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    
     - name: Install Godot
       run: |
         wget -q https://github.com/godotengine/godot/releases/download/4.0.3-stable/Godot_v4.0.3-stable_linux.x86_64.zip
         unzip -q Godot_v4.0.3-stable_linux.x86_64.zip
         chmod +x Godot_v4.0.3-stable_linux.x86_64
         sudo mv Godot_v4.0.3-stable_linux.x86_64 /usr/local/bin/godot
-    - name: Build APK
+        godot --version
+        
+    - name: Debug - Check project structure
+      run: |
+        echo "=== PROJECT STRUCTURE ==="
+        find game/ -type f -name "*.gd" -o -name "*.godot" | head -20
+        echo "=== project.godot CONTENT ==="
+        cat game/project.godot
+        echo "=== Main.gd CONTENT ==="
+        cat game/src/Main.gd | head -10
+        
+    - name: Build APK with verbose output
       run: |
         cd game
-        godot --headless --export-release Android AI_Village_Life.apk
-        ls -la
-    - name: Upload APK
+        echo "🚀 Building APK with verbose output..."
+        godot --headless --verbose --export-release Android AI_Village_Life.apk 2>&1 | tee build.log
+        echo "=== BUILD EXIT CODE: $? ==="
+        
+    - name: Debug - Check build results
+      run: |
+        echo "=== BUILD LOG (LAST 20 LINES) ==="
+        tail -20 game/build.log || echo "No build log"
+        echo "=== ALL FILES IN GAME DIRECTORY ==="
+        ls -la game/
+        echo "=== FIND ANY APK FILES ==="
+        find . -name "*.apk" -type f
+        echo "=== CHECK EXPORT PRESETS ==="
+        grep -A 10 "export_presets" game/project.godot || echo "No export presets found"
+        
+    - name: Upload APK if exists
+      if: hash('game/AI_Village_Life.apk')
       uses: actions/upload-artifact@v4
       with:
         name: APK
